@@ -5,6 +5,23 @@
 	const update = ()=> {
 		current_instance.update(()=>instance.name)
 	}
+
+    const formatSuffix = key => {
+        switch(key){
+            case 'temperature' :return ' °C';
+            case 'memory':
+            case 'cpu':
+            case 'disk':return ' %';
+            default :return '';
+        }
+    }
+
+    const showMetric = (name,value)=>{
+	    if( name === "name"){
+	        return "";
+        }
+	    return `${name} : ${value} ${formatSuffix(name)}`
+    }
 </script>
 
 <style>
@@ -27,5 +44,7 @@
 
 <div class="instance" on:click="{update}">
 <div class="title">Instance {instance.name}</div>
-Memory : {instance.memory}%
+    {#each Object.keys(instance) as id}
+        {showMetric(id,instance[id])}
+    {/each}
 </div>
