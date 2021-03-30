@@ -4,7 +4,7 @@
 	
 	const loadInstancesList = async ()=>{
 		return new Promise(resolve=>{
-			fetch('http://localhost:9000/instances')
+			fetch('/instances')
 				.then(r=>r.json()
 					.then(data=>
 						resolve(Object.keys(data).map(name=>{

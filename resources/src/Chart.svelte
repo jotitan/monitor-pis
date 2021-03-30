@@ -31,7 +31,7 @@
     let updateChart = ci => {
         instance = ci;
         return new Promise(resolve=>{
-            fetch(`http://localhost:9000/search?instance=${ci}&date=${currentDate}`)
+            fetch(`/search?instance=${ci}&date=${currentDate}`)
                 .then(r=>r.json().then(data=>{
                     let series = [];
                     let schema = [];

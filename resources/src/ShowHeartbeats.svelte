@@ -5,7 +5,7 @@
 	
 	const loadHeartbeatsList = async ()=>{
 		return new Promise((resolve,reject)=> {
-			fetch("http://localhost:9000/heartbeats")
+			fetch("/heartbeats")
 				.then(d=>d.json().then(resolve))	
 		});
 	}
