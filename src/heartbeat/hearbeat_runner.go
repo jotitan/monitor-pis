@@ -43,5 +43,10 @@ func (hb Heartbeat)testAsFloat()float32{
 func (hb Heartbeat)test()bool{
 	log.Println("Call",hb.url)
 	resp,err := http.Get(hb.url)
+	defer func(){
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
 	return err == nil && resp.StatusCode == 200
 }

@@ -9,23 +9,24 @@ import (
 
 type MonitoringConfig struct {
 	// url to send metrics
-	Port string `json:"port"`
-	Folder string `json:"folder"`
-	HeartBeats []struct {
-		Name string `json:"name"`
-		Url string `json:"url"`
+	Port           string `json:"port"`
+	Folder         string `json:"folder"`
+	AutoFlushLimit int    `json:"auto_flush,omitempty"`
+	HeartBeats     []struct {
+		Name      string `json:"name"`
+		Url       string `json:"url"`
 		Frequency string `json:"frequency"`
 	} `json:"heartbeats"`
+	Resources string `json:"resources"`
 }
 
 func NewMonitoringConfig(path string) (*MonitoringConfig,error) {
-	c := &MonitoringConfig{}
+	c := &MonitoringConfig{AutoFlushLimit: 5}
 	if data,err := ioutil.ReadFile(path) ; err == nil {
-		json.Unmarshal(data,c)
+		return c,json.Unmarshal(data,c)
 	}else{
 		return nil,err
 	}
-	return c,nil
 }
 
 func (mc MonitoringConfig)GetHeartbeats()[]heartbeat.Heartbeat {

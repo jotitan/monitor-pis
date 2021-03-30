@@ -2,21 +2,24 @@ package monitor_server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/jotitan/monitor-pis/config"
 	"github.com/jotitan/monitor-pis/model"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
-type MonitoringServer struct{
-	port string
+type MonitoringServer struct {
+	port       string
 	repository *MetricRepository
+	resources  string
 }
 
 func NewMonitoringServer(conf config.MonitoringConfig)MonitoringServer{
-	return MonitoringServer{conf.Port,NewMetricRepository(conf)}
+	return MonitoringServer{port:conf.Port,repository: NewMetricRepository(conf),resources: conf.Resources}
 }
 
 func (ms MonitoringServer)Start(){
@@ -35,6 +38,7 @@ func (ms MonitoringServer)createServer()*http.ServeMux{
 	s.HandleFunc("/instances_names", ms.instancesNames)
 	s.HandleFunc("/instances", ms.instances)
 	s.HandleFunc("/heartbeats", ms.heartbeats)
+	s.HandleFunc("/", ms.defaultHandle)
 
 	return s
 }
@@ -73,14 +77,20 @@ func (ms MonitoringServer)heartbeats(w http.ResponseWriter, r * http.Request){
 	w.Write(data)
 }
 
+func (ms MonitoringServer)defaultHandle(w http.ResponseWriter,r * http.Request){
+	fmt.Println(r.RequestURI[1:])
+	http.ServeFile(w, r, filepath.Join(ms.resources, r.RequestURI[1:]))
+}
+
 func (ms MonitoringServer)search(w http.ResponseWriter, r * http.Request){
 	addCors(w)
 	instance := r.FormValue("instance")
 	metric := r.FormValue("metric")
+	date := r.FormValue("date")
 	if strings.EqualFold("",metric){
-		ms.searchAll(w,instance)
+		ms.searchAll(w,instance,date)
 	}else {
-		points := ms.repository.Search(instance, metric)
+		points := ms.repository.Search(instance, metric,date)
 		if data, err := json.Marshal(points); err == nil {
 			log.Println("Search", instance, metric, ". Found", len(points))
 			w.Header().Set("Content-type", "application/json")
@@ -89,11 +99,11 @@ func (ms MonitoringServer)search(w http.ResponseWriter, r * http.Request){
 	}
 }
 
-func (ms MonitoringServer)searchAll(w http.ResponseWriter, instanceName string){
+func (ms MonitoringServer)searchAll(w http.ResponseWriter, instanceName,date string){
 	instance := ms.repository.getInstance(instanceName, false)
 	metrics := make(map[string][]model.MetricPoint)
 	for _,metric := range instance.getMetricsName(){
-		metrics[metric] = ms.repository.Search(instanceName, metric)
+		metrics[metric] = ms.repository.Search(instanceName, metric,date)
 	}
 	log.Println("Search all metrics", instanceName)
 	if data, err := json.Marshal(metrics); err == nil {

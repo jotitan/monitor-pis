@@ -62,7 +62,7 @@ func checkUrl(url string)bool{
 }
 
 func (ar AgentRunner)Run(){
-	log.Println("Start agent...")
+	log.Println("Start agent with",len(ar.metrics),"metric(s)")
 	for {
 		<- time.NewTicker(ar.duration).C
 		ar.sendMetrics(ar.computeMetrics())

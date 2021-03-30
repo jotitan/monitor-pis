@@ -1,5 +1,4 @@
 <script>
-	let name = 'world nnnn';
 	import ShowInstances from './ShowInstances.svelte'
 	import ShowHeartbeats from './ShowHeartbeats.svelte'
 	import Chart from './Chart.svelte'

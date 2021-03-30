@@ -15,6 +15,6 @@
       "url":"http://pi:9006",
       "frequency": "60s"
     }
-
-  ]
+  ],
+  "resources": "c:\\Projets\\perso\\monitor-pis\\resources\\public"
 }

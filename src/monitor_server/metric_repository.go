@@ -303,16 +303,22 @@ func (r MetricInstanceRepository)getFilename(date time.Time)string{
 	return filepath.Join(r.Folder,fmt.Sprintf("metric_%s_%s.met",r.Name,date.Format("20060102")))
 }
 
-func (r * MetricInstanceRepository)Search(metricName string)[]model.MetricPoint {
+func (r * MetricInstanceRepository)Search(metricName,date string)[]model.MetricPoint {
 	if points,exist := r.lastMetrics[metricName] ; exist {
 		// Read in file and append current points
-		return append(r.readMetricsFromFile(metricName),points...)
+		return append(r.readMetricsFromFile(metricName,date),points...)
 	}
-	return r.readMetricsFromFile(metricName)
+	return r.readMetricsFromFile(metricName,date)
 }
 
-func (r *MetricInstanceRepository)readMetricsFromFile(metricName string)[]model.MetricPoint{
-	f,_ := os.Open(r.getFilename(time.Now()))
+func (r *MetricInstanceRepository)readMetricsFromFile(metricName,date string)[]model.MetricPoint{
+	readDate := time.Now()
+	if !strings.EqualFold("",date){
+		if d,err := time.Parse("2006-01-02",date) ; err == nil {
+			readDate = d
+		}
+	}
+	f,_ := os.Open(r.getFilename(readDate))
 	defer f.Close()
 	if r.head == nil {
 		r.head = r.readHeader(f)

@@ -13,19 +13,18 @@ import (
 
 const (
 	heartbeatInstanceName = "heartbeat"
-	// Externalize
-	autoFlushLimit = 5
 )
 
 // Manage all metrics store
 type MetricRepository struct {
 	folder    string
 	instances map[string]*MetricInstanceRepository
+	autoFlushLimit int
 }
 
 func NewMetricRepository(conf config.MonitoringConfig)*MetricRepository{
 	// Load instances from file
-	mr := &MetricRepository{folder:conf.Folder,instances:make(map[string]*MetricInstanceRepository)}
+	mr := &MetricRepository{folder:conf.Folder,instances:make(map[string]*MetricInstanceRepository),autoFlushLimit: conf.AutoFlushLimit}
 	mr.loadInstancesNames()
 	mr.launchHeartBeats(conf)
 
@@ -44,7 +43,7 @@ func (mr * MetricRepository)loadInstancesNames(){
 		instances := make([]string,0)
 		json.Unmarshal(data,&instances)
 		for _,instance := range instances {
-			mr.instances[instance] = NewMetricInstanceRepository(mr.folder,instance,nbPointsByBlock,autoFlushLimit)
+			mr.instances[instance] = NewMetricInstanceRepository(mr.folder,instance,nbPointsByBlock,mr.autoFlushLimit)
 		}
 		log.Println("Load instances",len(mr.instances))
 	}
@@ -65,7 +64,7 @@ func (mr * MetricRepository)saveInstancesNames(){
 func (mr * MetricRepository)getInstance(instanceName string, createIfNoExist bool)*MetricInstanceRepository{
 	instance,exist := mr.instances[instanceName]
 	if !exist && createIfNoExist {
-		instance = NewMetricInstanceRepository(mr.folder,instanceName,nbPointsByBlock,autoFlushLimit)
+		instance = NewMetricInstanceRepository(mr.folder,instanceName,nbPointsByBlock,mr.autoFlushLimit)
 		mr.instances[instanceName] = instance
 		mr.saveInstancesNames()
 		// Save metrics
@@ -86,9 +85,9 @@ func (mr *MetricRepository) AppendManyMetrics(instanceName string, points map[st
 	}
 }
 
-func (mr *MetricRepository)Search(instanceName, metricName string)[]model.MetricPoint{
+func (mr *MetricRepository)Search(instanceName, metricName,date string)[]model.MetricPoint{
 	if instance := mr.getInstance(instanceName, false) ; instance != nil {
-		return instance.Search(metricName)
+		return instance.Search(metricName,date)
 	}
 	return []model.MetricPoint{}
 }

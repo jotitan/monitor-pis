@@ -55,7 +55,7 @@ func TestWriteFile(t *testing.T){
 	r.Flush()
 
 	// Read file to search inside
-	points := r.Search("metric1")
+	points := r.Search("metric1","")
 	if nb := len(points) ; nb != 8 {
 		t.Error(fmt.Sprintf("Must find 8 values but find %d",nb))
 	}
@@ -66,7 +66,7 @@ func TestWriteFile(t *testing.T){
 		model.NewMetricPoint(27,1.3),
 		model.NewMetricPoint(27,-1.1),
 	})
-	points = r.Search("metric1")
+	points = r.Search("metric1","")
 	if nb := len(points) ; nb != 12 {
 		t.Error(fmt.Sprintf("Must find 12 values but find %d",nb))
 	}
@@ -75,7 +75,7 @@ func TestWriteFile(t *testing.T){
 	}
 
 	r2 := NewMetricInstanceRepository(dir,"instance1",5,10)
-	points = r2.Search("metric1")
+	points = r2.Search("metric1","")
 	if nb := len(points) ; nb != 8 {
 		t.Error(fmt.Sprintf("Must find 8 values but find %d",nb))
 	}
