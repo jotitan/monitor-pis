@@ -1,0 +1,31 @@
+<script>
+	import {current_instance} from './store.js';
+	export let instance = {};
+
+	const update = ()=> {
+		current_instance.update(()=>instance.name)
+	}
+</script>
+
+<style>
+	.instance {
+		border:solid 1px darkgrey;
+		width:300px;
+		display:inline-block;
+		margin-left:20px;
+		padding:10px;
+		cursor:pointer;
+	}
+	.title {
+		color:darkgray;
+		font-size:22px;
+		text-align:center;
+		padding:10px;
+		font-weight:bold;
+	}
+</style>
+
+<div class="instance" on:click="{update}">
+<div class="title">Instance {instance.name}</div>
+Memory : {instance.memory}%
+</div>

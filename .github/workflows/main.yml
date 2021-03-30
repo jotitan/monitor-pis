@@ -1,0 +1,49 @@
+# Workflow to build at each commit in master the application
+
+name: CI build micro backup
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    # Build server
+    - name: Build monitoring server and agent
+      run: |
+        echo Run build monitoring server and agent
+        cd src/main
+        export GOOS=linux
+        export GOARCH=arm
+        go build -o monitor_agent run_agent.go
+        go build -o monitoring_server run_monitoring_server.go
+        cd ../../
+        mkdir artifacts
+        echo Copy agent and server in artifacts/
+        mv src/main/monitor_agent src/main/monitoring_server artifacts
+
+    # Build monitoring web interface
+    - name: Build web monitoring interface
+      run: |
+        echo Build web monitoring interface
+        cd resources
+        npm install
+        npm run build
+        tar -cvzf build.tar.gz public
+        mv build.tar.gz ../artifacts
+
+    # Upload artifact
+    - uses: actions/upload-artifact@v1
+      with:
+        name: Create artifacts with builds
+        path: artifacts
