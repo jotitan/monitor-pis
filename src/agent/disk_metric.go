@@ -14,7 +14,7 @@ func NewDiskMetric()Metric{
 }
 
 func (tm diskMetric)GetValue()(float32,string,error){
-	c := "df |grep \"/dev/root\" | awk {'print $5'}"
+	c := "df |grep \"% /$\" | awk {'print $5'}"
 	//cmd := exec.Command("df -ah","| grep \"/dev/root\"")
 
 	cmd := exec.Command("bash","-c",c)
