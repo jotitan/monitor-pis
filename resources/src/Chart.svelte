@@ -51,7 +51,7 @@
                         });
                     });
                     series = Object.keys(tempData).sort((a,b)=>a-b).map(key=>tempData[key]);
-                    resolve(createChart(series,schema,axis,ci));
+                    resolve(createChart(series,schema,axis));
                 }));
 
 
@@ -68,7 +68,7 @@
         promise = updateChart(instance);
     }
 
-    const createChart = (data,schema,axis,ci)=> {
+    const createChart = (data,schema,axis)=> {
         const fusionDataStore = new FusionCharts.DataStore(),
             fusionTable = fusionDataStore.createDataTable(data, schema);
         let dataSource = {
@@ -95,7 +95,7 @@
         return {
             type: 'timeseries',
             width: '100%',
-            height: '600',
+            height: (schema.length-1) * 160,
             renderAt: 'chart-container',
             dataSource,
             yAxis:axis
