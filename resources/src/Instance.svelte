@@ -40,11 +40,14 @@
 		padding:10px;
 		font-weight:bold;
 	}
+    .metric::first-letter {
+        text-transform: capitalize;
+    }
 </style>
 
 <div class="instance" on:click="{update}">
 <div class="title">Instance {instance.name}</div>
     {#each Object.keys(instance) as id}
-        <div>{showMetric(id,instance[id])}</div>
+        <div class="metric">{showMetric(id,instance[id])}</div>
     {/each}
 </div>

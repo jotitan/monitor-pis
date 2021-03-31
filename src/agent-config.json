@@ -1,6 +1,0 @@
-{
-  "monitor_url": "http://localhost:9000",
-  "frequency": "5s",
-  "metrics": ["memory"],
-  "instance_name": "MyTest"
-}
