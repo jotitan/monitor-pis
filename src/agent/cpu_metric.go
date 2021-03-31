@@ -3,6 +3,7 @@ package agent
 import (
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type cpuMetric struct{}
@@ -19,7 +20,7 @@ func (tm cpuMetric)GetValue()(float32,string,error){
 	if err != nil {
 		return 0,"",err
 	}
-	value,err := strconv.ParseFloat(string(data),32)
+	value,err := strconv.ParseFloat(strings.Replace(string(data),"\n","",-1),32)
 	if err == nil {
 		return 100 - float32(value),"cpu",nil
 	}
