@@ -45,6 +45,6 @@
 <div class="instance" on:click="{update}">
 <div class="title">Instance {instance.name}</div>
     {#each Object.keys(instance) as id}
-        {showMetric(id,instance[id])}
+        <div>{showMetric(id,instance[id])}</div>
     {/each}
 </div>
