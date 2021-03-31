@@ -34,10 +34,9 @@
 		cursor:pointer;
 	}
 	.title {
-		color:darkgray;
+		color: #737373;
 		font-size:22px;
 		text-align:center;
-		padding:10px;
 		font-weight:bold;
 	}
     .metric::first-letter {

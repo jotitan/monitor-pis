@@ -5,7 +5,9 @@
 </script>
 
 <style>
-
+	h1 {
+		margin-top:0px;
+	}
 </style>
 
 <h1>Raspberry home monitoring</h1>

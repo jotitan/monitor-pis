@@ -239,10 +239,14 @@ func (r * MetricInstanceRepository)Flush()error{
 		}
 		r.flushPoints(f)
 	}
+	r.resetLastMetrics()
+	return nil
+}
+
+func (r * MetricInstanceRepository)resetLastMetrics(){
 	r.locks.mapLocker.Lock()
 	r.lastMetrics = make(map[string][]model.MetricPoint)
 	r.locks.mapLocker.Unlock()
-	return nil
 }
 
 func (r MetricInstanceRepository)getPointsAsBytes(points []model.MetricPoint)[]byte{
