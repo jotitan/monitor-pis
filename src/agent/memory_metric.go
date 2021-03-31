@@ -13,5 +13,5 @@ func NewMemoryMetric()Metric{
 func (tm memoryMetric)GetValue()(float32,string,error){
 	m := sigar.Mem{}
 	m.Get()
-	return float32(m.Used*100/m.Total),"memory",nil
+	return float32(m.ActualUsed*100/m.Total),"memory",nil
 }
