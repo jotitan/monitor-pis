@@ -1,6 +1,6 @@
 # Workflow to build at each commit in master the application
 
-name: CI build micro backup
+name: CI build monitor pis
 
 on:
   push:
