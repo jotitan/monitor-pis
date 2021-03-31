@@ -31,7 +31,11 @@ func NewAgentRunner(config config.AgentConfig)(*AgentRunner,error){
 	if err != nil {
 		return nil,err
 	}
-	return &AgentRunner{duration:frequency,monitorUrl: config.MonitorUrl,metrics:metrics,name:config.Name},nil
+
+	ar := &AgentRunner{duration:frequency,monitorUrl: config.MonitorUrl,metrics:metrics,name:config.Name}
+	// First launch, show metrics
+	log.Println("First launch",ar.computeMetrics())
+	return ar,nil
 }
 
 func buildMetrics(names []string)([]Metric,error){
