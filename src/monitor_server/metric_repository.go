@@ -387,7 +387,7 @@ func (r * MetricInstanceRepository)Append(metricName string,points []model.Metri
 		r.lastMetrics[metricName] = metricsPoint
 		r.metricsName[metricName] = struct{}{}
 	}
-	r.lastMetrics[metricName] = points
+	r.lastMetrics[metricName] = append(metricsPoint,points...)
 	r.locks.mapLocker.Unlock()
 	r.checkAutoFlush()
 }
