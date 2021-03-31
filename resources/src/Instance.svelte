@@ -20,7 +20,7 @@
 	    if( name === "name"){
 	        return "";
         }
-	    return `${name} : ${value} ${formatSuffix(name)}`
+	    return `${name} : ${parseFloat(value).toFixed(2)} ${formatSuffix(name)}`
     }
 </script>
 
