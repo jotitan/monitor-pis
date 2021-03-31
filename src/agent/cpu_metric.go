@@ -20,7 +20,7 @@ func (tm cpuMetric)GetValue()(float32,string,error){
 	if err != nil {
 		return 0,"",err
 	}
-	value,err := strconv.ParseFloat(strings.Replace(string(data),"\n","",-1),32)
+	value,err := strconv.ParseFloat(strings.Replace(strings.Replace(string(data),"\n","",-1),",",".",-1),32)
 	if err == nil {
 		return 100 - float32(value),"cpu",nil
 	}
