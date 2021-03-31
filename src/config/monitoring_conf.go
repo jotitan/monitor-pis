@@ -7,16 +7,18 @@ import (
 	"log"
 )
 
+type HeartbeatConfig struct{
+	Name      string `json:"name"`
+	Url       string `json:"url"`
+	Frequency string `json:"frequency"`
+}
+
 type MonitoringConfig struct {
 	// url to send metrics
 	Port           string `json:"port"`
 	Folder         string `json:"folder"`
 	AutoFlushLimit int    `json:"auto_flush,omitempty"`
-	HeartBeats     []struct {
-		Name      string `json:"name"`
-		Url       string `json:"url"`
-		Frequency string `json:"frequency"`
-	} `json:"heartbeats"`
+	HeartBeats     []HeartbeatConfig `json:"heartbeats"`
 	Resources string `json:"resources"`
 }
 
