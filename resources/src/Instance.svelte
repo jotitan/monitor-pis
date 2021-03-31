@@ -1,10 +1,17 @@
 <script>
 	import {current_instance} from './store.js';
 	export let instance = {};
-
+    let isSelected = false;
 	const update = ()=> {
 		current_instance.update(()=>instance.name)
 	}
+
+	current_instance.subscribe(ci=>{
+	   isSelected = false;
+	    if(ci === instance.name) {
+            isSelected = true;
+       }
+    });
 
     const formatSuffix = key => {
         switch(key){
@@ -42,9 +49,14 @@
     .metric::first-letter {
         text-transform: capitalize;
     }
+
+    .selected {
+        border-color: #ff8c00;
+        border-width: 2px;
+    }
 </style>
 
-<div class="instance" on:click="{update}">
+<div class='instance {isSelected ? "selected":""}' on:click="{update}">
 <div class="title">Instance {instance.name}</div>
     {#each Object.keys(instance) as id}
         <div class="metric">{showMetric(id,instance[id])}</div>

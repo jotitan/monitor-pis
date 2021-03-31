@@ -13,7 +13,7 @@ func NewCpuMetric()Metric{
 }
 
 func (tm cpuMetric)GetValue()(float32,string,error){
-	c := "mpstat | grep all | awk '{print $12}'"
+	c := "mpstat 2 1 | grep -E \":[ ]+all\" | awk '{print $12}'"
 	cmd := exec.Command("bash","-c",c)
 	data,err := cmd.Output()
 
