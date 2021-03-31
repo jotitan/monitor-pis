@@ -370,11 +370,18 @@ func (r * MetricInstanceRepository)Append(metricName string,points []model.Metri
 	metricsPoint,exist := r.lastMetrics[metricName]
 	if !exist {
 		metricsPoint = make([]model.MetricPoint,0)
-		r.lastMetrics[metricName] = metricsPoint
+		r.updateMetrics(metricName,metricsPoint)
 		r.metricsName[metricName] = struct{}{}
 	}
-	r.lastMetrics[metricName] = append(metricsPoint,points...)
+	r.updateMetrics(metricName,append(metricsPoint,points...))
 	r.checkAutoFlush()
+}
+
+func (r * MetricInstanceRepository)updateMetrics(metricName string, points []model.MetricPoint){
+	// Use a locker (same as file)
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	r.lastMetrics[metricName] = points
 }
 
 func (r * MetricInstanceRepository)checkAutoFlush(){
