@@ -150,29 +150,34 @@ func (bh *blockHeader) flushHeader(f *os.File){
 	f.WriteAt(getInt64AsBytes(bh.nextBlock),bh.positionInFile+4)
 }
 
+type configRepo struct {
+	name string
+	folder string
+	autoFlushLImit int
+	pointsByBlock int
+}
+
+type lockers struct {
+	fileLocker * sync.Mutex
+	mapLocker * sync.RWMutex
+}
+
 // Store metrics of an instance
 type MetricInstanceRepository struct {
-	Name string
-	Folder string
+	conf configRepo
 	// Store last values, other values are in file
 	lastMetrics map[string][]model.MetricPoint
-	// Limit to flush auto metrics in file
-	AutoFlushLimit int
-	PointsByBlock int
 	// Store the headerFileMetrics
 	head *headerFileMetrics
-	mutex *sync.Mutex
-	metricsName map[string]struct{}
+	locks lockers
+ 	metricsName map[string]struct{}
 }
 
 func NewMetricInstanceRepository(folder,instanceName string,nbPointsByBlock, autoFlushLimit int)*MetricInstanceRepository{
 	mir :=  &MetricInstanceRepository{
-		Folder:folder,
-		Name:instanceName,
+		conf:configRepo{name: instanceName,folder: folder,pointsByBlock: nbPointsByBlock,autoFlushLImit: autoFlushLimit},
 		lastMetrics: make(map[string][]model.MetricPoint),
-		PointsByBlock: nbPointsByBlock,
-		AutoFlushLimit: autoFlushLimit,
-		mutex:&sync.Mutex{},
+		locks: lockers{fileLocker: &sync.Mutex{},mapLocker: &sync.RWMutex{}},
 		metricsName: make(map[string]struct{}),
 	}
 
@@ -212,8 +217,8 @@ func (r MetricInstanceRepository) getMetricsName() []string {
 
 func (r * MetricInstanceRepository)Flush()error{
 	// Block read/write
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	r.locks.fileLocker.Lock()
+	defer r.locks.fileLocker.Unlock()
 	filename := r.getFilename(time.Now())
 	// Open file, load headerFileMetrics
 	f,err := os.OpenFile(filename,os.O_CREATE|os.O_RDWR,os.ModePerm)
@@ -224,7 +229,7 @@ func (r * MetricInstanceRepository)Flush()error{
 	// Go to end
 	if position,_ := f.Seek(0,2) ; position == 0 {
 		// New file, write headerFileMetrics
-		r.head = newHeader(r.Name)
+		r.head = newHeader(r.conf.name)
 		// Reserve space
 		f.WriteAt(make([]byte,r.head.sizeHeader()),0)
 		r.flushPoints(f)
@@ -234,7 +239,9 @@ func (r * MetricInstanceRepository)Flush()error{
 		}
 		r.flushPoints(f)
 	}
+	r.locks.mapLocker.Lock()
 	r.lastMetrics = make(map[string][]model.MetricPoint)
+	r.locks.mapLocker.Unlock()
 	return nil
 }
 
@@ -248,6 +255,8 @@ func (r MetricInstanceRepository)getPointsAsBytes(points []model.MetricPoint)[]b
 }
 
 func (r * MetricInstanceRepository)flushPoints(f *os.File){
+	r.locks.mapLocker.RLock()
+	defer r.locks.mapLocker.RUnlock()
 	for nameMetric,points := range r.lastMetrics {
 		var hm *headerMetric
 		var bh *blockHeader
@@ -255,10 +264,10 @@ func (r * MetricInstanceRepository)flushPoints(f *os.File){
 			// compute position
 			hm = r.head.getMetric(nameMetric)
 			// get block to write, read
-			bh = newBlockHeader(f, hm.currentBlockPosition,r.PointsByBlock)
+			bh = newBlockHeader(f, hm.currentBlockPosition,r.conf.pointsByBlock)
 		}else {
 			hm,_ = r.head.createMetric(nameMetric,r.getEndPosition(f))
-			bh = createNewBlockHeader(r.getEndPosition(f),r.PointsByBlock)
+			bh = createNewBlockHeader(r.getEndPosition(f),r.conf.pointsByBlock)
 			// Reserve space in file
 			f.WriteAt(make([]byte,bh.getSizeBlock()),bh.positionInFile)
 		}
@@ -279,7 +288,7 @@ func (r MetricInstanceRepository)writePointsInBlock(f *os.File,bh *blockHeader,p
 	bh.updateNbPoints(len(pointsToWrite))
 	if size < len(points){
 		// Write more
-		nextBlock := createNewBlockHeader(r.getEndPosition(f),r.PointsByBlock)
+		nextBlock := createNewBlockHeader(r.getEndPosition(f),r.conf.pointsByBlock)
 		f.WriteAt(make([]byte,bh.getSizeBlock()),nextBlock.positionInFile)
 		bh.nextBlock = nextBlock.positionInFile
 		hm.currentBlockPosition = nextBlock.positionInFile
@@ -300,10 +309,12 @@ func (r MetricInstanceRepository)readHeader(f *os.File)*headerFileMetrics {
 }
 
 func (r MetricInstanceRepository)getFilename(date time.Time)string{
-	return filepath.Join(r.Folder,fmt.Sprintf("metric_%s_%s.met",r.Name,date.Format("20060102")))
+	return filepath.Join(r.conf.folder,fmt.Sprintf("metric_%s_%s.met",r.conf.name,date.Format("20060102")))
 }
 
 func (r * MetricInstanceRepository)Search(metricName,date string)[]model.MetricPoint {
+	r.locks.mapLocker.RLock()
+	defer r.locks.mapLocker.RUnlock()
 	if points,exist := r.lastMetrics[metricName] ; exist {
 		// Read in file and append current points
 		return append(r.readMetricsFromFile(metricName,date),points...)
@@ -339,6 +350,7 @@ func (r *MetricInstanceRepository) readLastMetrics()map[string]float32{
 	lasts := make(map[string]float32)
 	for _,name := range r.getMetricsName() {
 		// Check if last value exist
+		r.locks.mapLocker.RLock()
 		if values,exist := r.lastMetrics[name] ; exist && len(values) > 0{
 			lasts[name] = values[len(values)-1].Value
 		}else{
@@ -346,12 +358,13 @@ func (r *MetricInstanceRepository) readLastMetrics()map[string]float32{
 			hm := r.head.getMetric(name)
 			lasts[name] = r.readLastValueBlock(f,hm.currentBlockPosition)
 		}
+		r.locks.mapLocker.RUnlock()
 	}
 	return lasts
 }
 
 func (r MetricInstanceRepository)readBlock(f *os.File,position int64)[]model.MetricPoint{
-	bh := newBlockHeader(f,position,r.PointsByBlock)
+	bh := newBlockHeader(f,position,r.conf.pointsByBlock)
 	points := bh.readPoints(f)
 	if bh.nextBlock != 0 {
 		points = append(points,r.readBlock(f,bh.nextBlock)...)
@@ -360,36 +373,33 @@ func (r MetricInstanceRepository)readBlock(f *os.File,position int64)[]model.Met
 }
 
 func (r MetricInstanceRepository)readLastValueBlock(f *os.File,position int64)float32{
-	bh := newBlockHeader(f,position,r.PointsByBlock)
+	bh := newBlockHeader(f,position,r.conf.pointsByBlock)
 	lastPosition := bh.positionInFile + int64(12*bh.nbPoints +8)
 	data := readData(f,lastPosition,4)
 	return getBytesAsFloat32(data)
 }
 
 func (r * MetricInstanceRepository)Append(metricName string,points []model.MetricPoint){
+	r.locks.mapLocker.Lock()
 	metricsPoint,exist := r.lastMetrics[metricName]
 	if !exist {
 		metricsPoint = make([]model.MetricPoint,0)
-		r.updateMetrics(metricName,metricsPoint)
+		r.lastMetrics[metricName] = metricsPoint
 		r.metricsName[metricName] = struct{}{}
 	}
-	r.updateMetrics(metricName,append(metricsPoint,points...))
-	r.checkAutoFlush()
-}
-
-func (r * MetricInstanceRepository)updateMetrics(metricName string, points []model.MetricPoint){
-	// Use a locker (same as file)
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
 	r.lastMetrics[metricName] = points
+	r.locks.mapLocker.Unlock()
+	r.checkAutoFlush()
 }
 
 func (r * MetricInstanceRepository)checkAutoFlush(){
 	count := 0
+	r.locks.mapLocker.RLock()
 	for _,points := range r.lastMetrics {
 		count+=len(points)
 	}
-	if count >= r.AutoFlushLimit {
+	r.locks.mapLocker.RUnlock()
+	if count >= r.conf.autoFlushLImit {
 		r.Flush()
 	}
 }
