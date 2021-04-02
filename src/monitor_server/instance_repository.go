@@ -20,13 +20,20 @@ type MetricRepository struct {
 	folder    string
 	instances map[string]*MetricInstanceRepository
 	autoFlushLimit int
+	fileCleaner *RetentationProcess
 }
 
 func NewMetricRepository(conf config.MonitoringConfig)*MetricRepository{
 	// Load instances from file
-	mr := &MetricRepository{folder:conf.Folder,instances:make(map[string]*MetricInstanceRepository),autoFlushLimit: conf.AutoFlushLimit}
+	mr := &MetricRepository{
+		folder:conf.Folder,
+		instances:make(map[string]*MetricInstanceRepository),
+		autoFlushLimit: conf.AutoFlushLimit,
+		fileCleaner: NewRetentionProcess(conf.RetentionDays,conf.Folder),
+	}
 	mr.loadInstancesNames()
 	mr.launchHeartBeats(conf)
+	go mr.fileCleaner.Launch()
 
 	return mr
 }

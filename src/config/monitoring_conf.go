@@ -18,12 +18,13 @@ type MonitoringConfig struct {
 	Port           string `json:"port"`
 	Folder         string `json:"folder"`
 	AutoFlushLimit int    `json:"auto_flush,omitempty"`
+	RetentionDays int    `json:"retention_days,omitempty"`
 	HeartBeats     []HeartbeatConfig `json:"heartbeats"`
 	Resources string `json:"resources"`
 }
 
 func NewMonitoringConfig(path string) (*MonitoringConfig,error) {
-	c := &MonitoringConfig{AutoFlushLimit: 5}
+	c := &MonitoringConfig{AutoFlushLimit: 5,RetentionDays: 30}
 	if data,err := ioutil.ReadFile(path) ; err == nil {
 		return c,json.Unmarshal(data,c)
 	}else{
