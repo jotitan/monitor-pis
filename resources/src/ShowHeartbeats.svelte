@@ -48,12 +48,5 @@
 			<Heartbeat heartbeat={hb}/>
 		{/each}
 	{/await}
-	<Heartbeat heartbeat={{Name:"test",IsUp:false}}/>
-	<Heartbeat heartbeat={{Name:"test plus long",IsUp:true}}/>
-	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
-	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
-	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
-	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:true}}/>
-	<Heartbeat heartbeat={{Name:"serveur_musique",IsUp:true}}/>
 </div>
 
