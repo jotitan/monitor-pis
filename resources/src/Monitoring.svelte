@@ -7,9 +7,13 @@
 <style>
 	h1 {
 		margin-top:0px;
+		font-size:1.6em;
+	}
+	.body {
+		color:white;
 	}
 </style>
-
+<div class="body">
 <h1>Raspberry home monitoring</h1>
 
 <div style="float:left;width:70%">
@@ -21,6 +25,7 @@
 </div>
 
 <Chart/>
+</div>
 
 
 

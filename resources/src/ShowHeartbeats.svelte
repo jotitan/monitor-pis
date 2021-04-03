@@ -30,17 +30,16 @@
 		cursor:pointer;
 	}
 	.block.selected {
-		border-color: #ff8c00;
-		border-width: 2px;
+		border: solid 2px #e5e5e5;
 	}
 	.block {
-		border:solid 1px black;
+		background-color:#262a33;
 		padding:10px;
 	}
 </style>
 
-<div class='block {isSelected ? "selected":""}'>
-	<div on:click="{showChart}" class="title">Monitoring services</div>
+<div class='block {isSelected ? "selected":""}' on:click="{showChart}" >
+	<div class="title">Monitoring services</div>
 
 	{#await promise}
 		loading...
@@ -49,6 +48,12 @@
 			<Heartbeat heartbeat={hb}/>
 		{/each}
 	{/await}
-
+	<Heartbeat heartbeat={{Name:"test",IsUp:false}}/>
+	<Heartbeat heartbeat={{Name:"test plus long",IsUp:true}}/>
+	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
+	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
+	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:false}}/>
+	<Heartbeat heartbeat={{Name:"petit dernier",IsUp:true}}/>
+	<Heartbeat heartbeat={{Name:"serveur_musique",IsUp:true}}/>
 </div>
 

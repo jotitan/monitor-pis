@@ -4,11 +4,12 @@
 
     import FusionCharts from 'fusioncharts';
     import Timeseries from 'fusioncharts/fusioncharts.timeseries';
+    import CandyTheme from "fusioncharts/themes/fusioncharts.theme.candy";
 
     import SvelteFC, { fcRoot } from 'svelte-fusioncharts';
 
     // Add dependencies
-    fcRoot(FusionCharts, Timeseries);
+    fcRoot(FusionCharts, Timeseries,CandyTheme);
 
     let promise = null;
     let instance = "";
@@ -76,7 +77,6 @@
             showValues: "1",
             showPercentInTooltip: "0",
             enableMultiSlicing: "1",
-            theme: "fusion",
             yAxis:axis,
             extensions: {
                 standardRangeSelector: {
@@ -89,7 +89,10 @@
                 }
             },
             navigator:{enabled:false},
-            data: fusionTable
+            chart:{
+                theme:"candy"
+            },
+            data: fusionTable,
         };
 
         return {
@@ -110,7 +113,10 @@
 </script>
 
 <style>
-
+    input,button {
+        background-color: #262a33;
+        color:white;
+    }
 </style>
 
 <input type="date" on:change={e=>setDate(e.target.value)}/>

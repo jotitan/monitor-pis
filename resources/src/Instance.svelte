@@ -33,12 +33,13 @@
 
 <style>
 	.instance {
-		border:solid 1px darkgrey;
+        background-color:#262a33;
 		width:300px;
 		display:inline-block;
 		margin-left:20px;
 		padding:10px;
 		cursor:pointer;
+        vertical-align: top;
 	}
 	.title {
 		color: #737373;
@@ -51,8 +52,7 @@
     }
 
     .selected {
-        border-color: #ff8c00;
-        border-width: 2px;
+        border: solid 2px #e5e5e5;
     }
 </style>
 

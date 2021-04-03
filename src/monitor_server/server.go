@@ -101,8 +101,10 @@ func (ms MonitoringServer)searchAll(w http.ResponseWriter, instanceName,date str
 	instance := ms.repository.getInstance(instanceName, false)
 	setCommonHeader(w)
 	metrics := make(map[string][]model.MetricPoint)
-	for _,metric := range instance.getMetricsName(){
-		metrics[metric] = ms.repository.Search(instanceName, metric,date)
+	if instance != nil {
+		for _,metric := range instance.getMetricsName(){
+			metrics[metric] = ms.repository.Search(instanceName, metric,date)
+		}
 	}
 	log.Println("Search all metrics", instanceName)
 	if data, err := json.Marshal(metrics); err == nil {
