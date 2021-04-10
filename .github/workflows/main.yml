@@ -23,10 +23,10 @@ jobs:
         cd src/monitor_server
         echo Generate coverage for go packages
         go test -v -coverprofile=coverage.out
-        npm install -g codeclimate-test-reporter
+        npm install codeclimate-test-reporter
         CODECLIMATE_API_HOST=https://codebeat.co/webhooks/code_coverage \
         CODECLIMATE_REPO_TOKEN=2a0b3c42-34b9-470c-8198-1280aaeed042 \
-        codeclimate-test-reporter < coverage.out
+        npx codeclimate-test-reporter < coverage.out
 
       # Build server
     - name: Build monitoring server and agent
