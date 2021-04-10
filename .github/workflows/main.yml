@@ -20,7 +20,7 @@ jobs:
 
     - name: Code coverage for codebeat
       run: |
-        cd src
+        cd src/monitor_server
         echo Generate coverage for go packages
         go test -v -coverprofile=coverage.out
         npm install -g codeclimate-test-reporter
