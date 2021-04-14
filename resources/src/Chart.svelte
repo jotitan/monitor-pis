@@ -4,21 +4,36 @@
 
     import FusionCharts from 'fusioncharts';
     import Timeseries from 'fusioncharts/fusioncharts.timeseries';
+    import Charts from 'fusioncharts/fusioncharts.charts';
+    import Widgets from 'fusioncharts/fusioncharts.widgets';
+
     import CandyTheme from "fusioncharts/themes/fusioncharts.theme.candy";
 
     import SvelteFC, { fcRoot } from 'svelte-fusioncharts';
 
     // Add dependencies
-    fcRoot(FusionCharts, Timeseries,CandyTheme);
+    fcRoot(FusionCharts, Charts, Timeseries, Widgets, CandyTheme);
 
     let promise = null;
     let instance = "";
 
-    const formatKey = key => key.replaceAll("_"," ")
+    const colorRange = {
+        "color": [{
+            "minValue": "0",
+            "maxValue": "50",
+            "code": "#F2726F"
+        }, {
+            "minValue": "50",
+            "maxValue": "75",
+            "code": "#FFC533"
+        }, {
+            "minValue": "75",
+            "maxValue": "100",
+            "code": "#62B58F"
+        }]
+    };
 
-    const formatValue = value => {
-        return instance === "heartbeat" ? value *100 :value;
-    }
+    const formatKey = key => key.replaceAll("_"," ")
 
     const formatSuffix = key => {
         switch(key){
@@ -48,11 +63,11 @@
                                 tempData[d.Timestamp] = new Array(size);
                             }
                             tempData[d.Timestamp][0] = d.Timestamp;
-                            tempData[d.Timestamp][pos+1] = formatValue(d.Value);
+                            tempData[d.Timestamp][pos+1] = d.Value;
                         });
                     });
                     series = Object.keys(tempData).sort((a,b)=>a-b).map(key=>tempData[key]);
-                    resolve(createChart(series,schema,axis));
+                    resolve(createCharts(series,schema,axis));
                 }));
 
 
@@ -67,6 +82,55 @@
 
     const refresh = ()=> {
         promise = updateChart(instance);
+    }
+
+    const countAvailability = (data,pos)=>{
+        let count = data.map(d=>d[pos] != null ? d[pos]:1).reduce((a,b)=>a+b,0)
+        return (count/data.length)*100;
+    }
+
+    // return an array with at least one chart
+    const createCharts = (data,schema,axis) => {
+        return instance === "heartbeat" ? createGauges(data,schema,axis) : createChart(data,schema,axis)
+    }
+
+    const createGauge = (data,pos,title)=> {
+        const dials = {
+            "dial": [{
+                value: countAvailability(data,pos)
+            }]
+        };
+
+        const dataSource = {
+            "chart": {
+                caption: "Availability",
+                subcaption: formatKey(title),
+                numberSuffix: "%",
+                theme: "candy",
+                lowerLimit: "0",
+                upperLimit: "100",
+                showValue: "1",
+            },
+            colorRange: colorRange,
+            dials: dials
+        };
+
+        const chartConfigs = {
+            type: 'angulargauge',
+            width: 400,
+            height: 200,
+            dataFormat: 'json',
+            dataSource
+        };
+        return chartConfigs
+    }
+
+    const createGauges = (data,schema)=> {
+        let gauges = [];
+        for(let pos = 1 ; pos < schema.length ; pos++){
+            gauges.push(createGauge(data,pos,schema[pos].name));
+        }
+        return gauges;
     }
 
     const createChart = (data,schema,axis)=> {
@@ -90,19 +154,23 @@
             },
             navigator:{enabled:false},
             chart:{
-                theme:"candy"
+                theme:"candy",
+                multiCanvas: false
             },
             data: fusionTable,
         };
 
-        return {
+        return [{
             type: 'timeseries',
             width: '100%',
-            height: (schema.length-1) * 160,
+            height: 500,
             renderAt: 'chart-container',
             dataSource,
+            chart:{
+                multiCanvas: false
+            },
             yAxis:axis
-        };
+        }];
     }
 
     let currentDate = "";
@@ -119,16 +187,20 @@
     }
 </style>
 
-<input type="date" on:change={e=>setDate(e.target.value)}/>
-<button on:click={refresh}>Refresh</button>
+<p>
+    <input type="date" on:change={e=>setDate(e.target.value)}/>
+    <button on:click={refresh}>Refresh</button>
+</p>
 
 {#if promise != null}
     {#await promise}
         Loading chart...
     {:then config}
-        <div id="chart-container" >
-            <SvelteFC {...config} />
-        </div>
+        {#each config as chart}
+            <div id="chart-container" style="display: inline-block;margin-left: 10px">
+                <SvelteFC {...chart} />
+            </div>
+        {/each}
     {/await}
 
 {/if}
