@@ -264,11 +264,16 @@ func (r MetricInstanceRepository)getFilename(date time.Time)string{
 func (r * MetricInstanceRepository)Search(metricName,date string)[]model.MetricPoint {
 	r.locks.mapLocker.RLock()
 	defer r.locks.mapLocker.RUnlock()
-	if points,exist := r.lastMetrics[metricName] ; exist {
+	// Add last metrics only if same date
+	if points,exist := r.lastMetrics[metricName] ; isCurrentDate(date) && exist {
 		// Read in file and append current points
 		return append(r.readMetricsFromFile(metricName,date),points...)
 	}
 	return r.readMetricsFromFile(metricName,date)
+}
+
+func isCurrentDate(date string)bool {
+	return strings.EqualFold("",date) || strings.EqualFold(date,time.Now().Format("2006-01-02"))
 }
 
 func (r *MetricInstanceRepository)readMetricsFromFile(metricName,date string)[]model.MetricPoint{
