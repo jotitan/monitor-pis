@@ -53,7 +53,7 @@ jobs:
         mv build.tar.gz ../artifacts
 
     # Upload artifact
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: Create artifacts with builds
         path: artifacts
