@@ -6,8 +6,9 @@ import (
 	"log"
 )
 
-func main(){
-	c,err := config.NewMonitoringConfig("monitoring.json")
+func main() {
+	c, err := config.NewMonitoringConfig("monitoring.json")
+	log.Println("Use monitoring.json configuration")
 	if err != nil {
 		log.Fatal(err)
 	}
