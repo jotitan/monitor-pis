@@ -12,9 +12,7 @@
 
 	let promise = loadHeartbeatsList();
 	let isSelected = false;
-	const showChart = ()=> {
-		current_instance.update(()=>"heartbeat")
-	}
+	const showChart = ()=> current_instance.update(()=>"heartbeat")
 
 	current_instance.subscribe(ci=>isSelected = ci === "heartbeat")
 

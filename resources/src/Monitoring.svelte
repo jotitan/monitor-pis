@@ -16,11 +16,11 @@
 <div class="body">
 <h1>Raspberry home monitoring</h1>
 
-<div style="float:left;width:70%">
+<div style="float:left">
 	<ShowInstances/>
 </div>
 
-<div style="float:left;width:30%">
+<div style="float:left">
 	<ShowHeartbeats/>
 </div>
 

@@ -6,12 +6,7 @@
 		current_instance.update(()=>instance.name)
 	}
 
-	current_instance.subscribe(ci=>{
-	   isSelected = false;
-	    if(ci === instance.name) {
-            isSelected = true;
-       }
-    });
+	current_instance.subscribe(ci=>isSelected = ci === instance.name);
 
     const formatSuffix = key => {
         switch(key){
@@ -34,7 +29,7 @@
 <style>
 	.instance {
         background-color:#262a33;
-		width:300px;
+		min-width:160px;
 		display:inline-block;
 		margin-left:20px;
 		padding:10px;

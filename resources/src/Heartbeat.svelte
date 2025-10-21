@@ -1,8 +1,6 @@
 <script>
 	export let heartbeat = {};
-	const formatName = name => {
-		return name.replaceAll("_"," ");
-	}
+	const formatName = name => name.replaceAll("_"," ")
 </script>
 
 <style>
@@ -14,6 +12,9 @@
 		text-align:right;
 		display:inline-block;
 	}
+	.heartbeat > div.name {
+		width:120px;
+	}
 	.name::first-letter {
 		text-transform: capitalize;
 	}
@@ -21,6 +22,6 @@
 </style>
 
 <div class="heartbeat">
-	<div style="width:180px" class="name">{formatName(heartbeat.Name)}</div>
+	<div class="name">{formatName(heartbeat.Name)}</div>
 	<div style="margin-left:10px;">{heartbeat.IsUp?'🟢':'🔴'}</div>
 </div>
