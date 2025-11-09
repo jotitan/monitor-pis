@@ -37,7 +37,7 @@
 </style>
 
 <div class='block {isSelected ? "selected":""}' on:click="{showChart}" >
-	<div class="title">Monitoring services</div>
+	<div class="title">Services</div>
 
 	{#await promise}
 		loading...

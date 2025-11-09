@@ -185,9 +185,12 @@
         background-color: #262a33;
         color:white;
     }
+    .options {
+        float:right;
+    }
 </style>
 
-<p>
+<p class="options">
     <input type="date" on:change={e=>setDate(e.target.value)}/>
     <button on:click={refresh}>Refresh</button>
 </p>

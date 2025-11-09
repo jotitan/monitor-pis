@@ -20,7 +20,7 @@
 	<ShowInstances/>
 </div>
 
-<div style="float:left">
+<div style="float:left;width:400px;margin-left:10px;">
 	<ShowHeartbeats/>
 </div>
 
