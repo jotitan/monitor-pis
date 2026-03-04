@@ -1,6 +1,6 @@
 <script>
 
-    import {current_instance} from './store.js';
+    import {current_instance, current_date, refresh_date} from './store.js';
 
     import FusionCharts from 'fusioncharts';
     import Timeseries from 'fusioncharts/fusioncharts.timeseries';
@@ -16,6 +16,7 @@
 
     let promise = null;
     let instance = "";
+    let currentDate = "";
 
     const colorRange = {
         "color": [{
@@ -69,10 +70,14 @@
                     series = Object.keys(tempData).sort((a,b)=>a-b).map(key=>tempData[key]);
                     resolve(createCharts(series,schema,axis));
                 }));
-
-
         });
     }
+
+    const refresh = ()=> {
+        promise = updateChart(instance);
+    }
+
+    current_date.subscribe(value => currentDate = value)
 
     current_instance.subscribe(value=>{
         if(value !== ""){
@@ -80,9 +85,9 @@
         }
     });
 
-    const refresh = ()=> {
-        promise = updateChart(instance);
-    }
+    refresh_date.subscribe(() => refresh())
+
+
 
     const countAvailability = (data,pos)=>{
         let count = data.map(d=>d[pos] != null ? d[pos]:1).reduce((a,b)=>a+b,0)
@@ -172,28 +177,7 @@
             yAxis:axis
         }];
     }
-
-    let currentDate = "";
-
-    const setDate = date => {
-        currentDate = date;
-    }
 </script>
-
-<style>
-    input,button {
-        background-color: #262a33;
-        color:white;
-    }
-    .options {
-        float:right;
-    }
-</style>
-
-<p class="options">
-    <input type="date" on:change={e=>setDate(e.target.value)}/>
-    <button on:click={refresh}>Refresh</button>
-</p>
 
 {#if promise != null}
     {#await promise}

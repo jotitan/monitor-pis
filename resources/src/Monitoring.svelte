@@ -2,6 +2,7 @@
 	import ShowInstances from './ShowInstances.svelte'
 	import ShowHeartbeats from './ShowHeartbeats.svelte'
 	import Chart from './Chart.svelte'
+	import DateFilter from "./DateFilter.svelte";
 </script>
 
 <style>
@@ -15,6 +16,7 @@
 </style>
 <div class="body">
 <h1>Raspberry home monitoring</h1>
+<DateFilter/>
 
 <div style="float:left">
 	<ShowInstances/>
