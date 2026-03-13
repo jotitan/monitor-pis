@@ -19,12 +19,11 @@ type AlertConfig struct {
 }
 
 type EmailConfig struct {
-	HostSMTP       string `json:"host"`
-	LoginSMTP      string `json:"login"`
-	PasswordSMTP   string `json:"password"`
-	PortSMTP       string `json:"port"`
-	EmailSender    string `json:"sender"`
-	EmailRecipient string `json:"recipient"`
+	HostSMTP     string `json:"host"`
+	LoginSMTP    string `json:"login"`
+	PasswordSMTP string `json:"password"`
+	PortSMTP     string `json:"port"`
+	EmailSender  string `json:"sender"`
 }
 
 type MonitoringConfig struct {

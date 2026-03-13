@@ -15,20 +15,20 @@ func NewMailSender(conf config.EmailConfig) MailSender {
 	return MailSender{conf}
 }
 
-func (ms MailSender) sendBackNormal(name, url string) {
+func (ms MailSender) sendBackNormal(name, url, email string) {
 	subject := fmt.Sprintf("✅ Heartbeat service %s back to normal", name)
 	message := fmt.Sprintf("Hello\n\nService %s is back to normal. \n\nUrl %s is fully available", name, url)
-	ms.send(subject, message)
+	ms.send(subject, message, email)
 }
 
-func (ms MailSender) sendFail(name, url string) {
+func (ms MailSender) sendFail(name, url, email string) {
 	log.Println("Fail heartbeat", name, " => send mail")
 	subject := fmt.Sprintf("⚠️ Heartbeat service %s fail", name)
 	message := fmt.Sprintf("Hello\n\nService %s is not available. \n\nUrl %s is not responding, try to fix it.", name, url)
-	ms.send(subject, message)
+	ms.send(subject, message, email)
 }
 
-func (ms MailSender) send(subject, message string) {
+func (ms MailSender) send(subject, message, email string) {
 	auth := smtp.PlainAuth("", ms.LoginSMTP, ms.PasswordSMTP, ms.HostSMTP)
-	smtp.SendMail(ms.HostSMTP+":"+ms.PortSMTP, auth, ms.EmailSender, []string{ms.EmailRecipient}, []byte("Subject:"+subject+"\n\n"+message))
+	smtp.SendMail(ms.HostSMTP+":"+ms.PortSMTP, auth, ms.EmailSender, []string{email}, []byte("Subject:"+subject+"\n\n"+message))
 }

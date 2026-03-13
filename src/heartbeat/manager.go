@@ -37,14 +37,14 @@ func (m *Manager) recordPoint(success bool, url string) {
 	if success {
 		if a.alertSent && a.alertWhenUp {
 			// Send email cause service is back
-			m.mailSender.sendBackNormal(a.name, url)
+			m.mailSender.sendBackNormal(a.name, url, a.email)
 		}
 		m.points[url] = 0
 		a.alertSent = false
 	} else {
 		m.points[url] = m.points[url] + 1
 		if a.alertSent == false && m.points[url] >= a.threashold {
-			m.mailSender.sendFail(a.name, url)
+			m.mailSender.sendFail(a.name, url, a.email)
 			a.alertSent = true
 		}
 	}
