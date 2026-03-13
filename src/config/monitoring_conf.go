@@ -2,44 +2,47 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/jotitan/monitor-pis/heartbeat"
-	"io/ioutil"
-	"log"
+	"os"
 )
 
-type HeartbeatConfig struct{
-	Name      string `json:"name"`
-	Url       string `json:"url"`
-	Frequency string `json:"frequency"`
+type HeartbeatConfig struct {
+	Name      string      `json:"name"`
+	Url       string      `json:"url"`
+	Frequency string      `json:"frequency"`
+	Alert     AlertConfig `json:"alert"`
+}
+
+type AlertConfig struct {
+	Threashold  int    `json:"threashold"`
+	Email       string `json:"email"`
+	AlertWhenUp bool   `json:"alert_when_up"`
+}
+
+type EmailConfig struct {
+	HostSMTP       string `json:"host"`
+	LoginSMTP      string `json:"login"`
+	PasswordSMTP   string `json:"password"`
+	PortSMTP       string `json:"port"`
+	EmailSender    string `json:"sender"`
+	EmailRecipient string `json:"recipient"`
 }
 
 type MonitoringConfig struct {
 	// url to send metrics
-	Port           string `json:"port"`
-	Folder         string `json:"folder"`
-	AutoFlushLimit int    `json:"auto_flush,omitempty"`
-	RetentionDays int    `json:"retention_days,omitempty"`
-	HeartBeats     []HeartbeatConfig `json:"heartbeats"`
-	Resources string `json:"resources"`
+	Port              string            `json:"port"`
+	EmailSenderConfig EmailConfig       `json:"email"`
+	Folder            string            `json:"folder"`
+	AutoFlushLimit    int               `json:"auto_flush,omitempty"`
+	RetentionDays     int               `json:"retention_days,omitempty"`
+	HeartBeats        []HeartbeatConfig `json:"heartbeats"`
+	Resources         string            `json:"resources"`
 }
 
-func NewMonitoringConfig(path string) (*MonitoringConfig,error) {
-	c := &MonitoringConfig{AutoFlushLimit: 5,RetentionDays: 30}
-	if data,err := ioutil.ReadFile(path) ; err == nil {
-		return c,json.Unmarshal(data,c)
-	}else{
-		return nil,err
+func NewMonitoringConfig(path string) (*MonitoringConfig, error) {
+	c := &MonitoringConfig{AutoFlushLimit: 5, RetentionDays: 30}
+	if data, err := os.ReadFile(path); err == nil {
+		return c, json.Unmarshal(data, c)
+	} else {
+		return nil, err
 	}
-}
-
-func (mc MonitoringConfig)GetHeartbeats()[]heartbeat.Heartbeat {
-	heartbeats := make([]heartbeat.Heartbeat,0,len(mc.HeartBeats))
-	for _,hb := range mc.HeartBeats {
-		if frequency, err := parseFrequency(hb.Frequency) ; err == nil {
-			heartbeats = append(heartbeats, heartbeat.NewHeartBeat(hb.Name, hb.Url,frequency))
-		}else{
-			log.Println("Error",err)
-		}
-	}
-	return heartbeats
 }

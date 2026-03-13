@@ -3,8 +3,8 @@ package monitor_server
 import (
 	"encoding/json"
 	"github.com/jotitan/monitor-pis/config"
+	"github.com/jotitan/monitor-pis/heartbeat"
 	"github.com/jotitan/monitor-pis/model"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,19 +17,21 @@ const (
 
 // Manage all metrics store
 type MetricRepository struct {
-	folder         string
-	instances      map[string]*MetricInstanceRepository
-	autoFlushLimit int
-	fileCleaner    *RetentationProcess
+	folder           string
+	instances        map[string]*MetricInstanceRepository
+	autoFlushLimit   int
+	fileCleaner      *RetentationProcess
+	heartbeatManager *heartbeat.Manager
 }
 
 func NewMetricRepository(conf config.MonitoringConfig) *MetricRepository {
 	// Load instances from file
 	mr := &MetricRepository{
-		folder:         conf.Folder,
-		instances:      make(map[string]*MetricInstanceRepository),
-		autoFlushLimit: conf.AutoFlushLimit,
-		fileCleaner:    NewRetentionProcess(conf.RetentionDays, conf.Folder),
+		folder:           conf.Folder,
+		instances:        make(map[string]*MetricInstanceRepository),
+		autoFlushLimit:   conf.AutoFlushLimit,
+		fileCleaner:      NewRetentionProcess(conf.RetentionDays, conf.Folder),
+		heartbeatManager: heartbeat.NewManager(conf.EmailSenderConfig),
 	}
 	mr.loadInstancesNames()
 	mr.launchHeartBeats(conf)
@@ -39,14 +41,28 @@ func NewMetricRepository(conf config.MonitoringConfig) *MetricRepository {
 }
 
 func (mr *MetricRepository) launchHeartBeats(conf config.MonitoringConfig) {
-	for _, heartbeat := range conf.GetHeartbeats() {
-		log.Println("Run", heartbeat.Name)
-		heartbeat.Start(mr.getInstance(heartbeatInstanceName, true).Append)
+	for _, hb := range mr.GetHeartbeats(mr.heartbeatManager, conf) {
+		log.Println("Run", hb.Name)
+		hb.Start(mr.getInstance(heartbeatInstanceName, true).Append)
 	}
 }
 
+func (mr *MetricRepository) GetHeartbeats(heartbeatManager *heartbeat.Manager, monitoringConfig config.MonitoringConfig) []heartbeat.Heartbeat {
+	heartbeats := make([]heartbeat.Heartbeat, 0, len(monitoringConfig.HeartBeats))
+	for _, hb := range monitoringConfig.HeartBeats {
+		if frequency, err := config.ParseFrequency(hb.Frequency); err == nil {
+			hbInstance := heartbeat.NewHeartBeat(hb.Name, hb.Url, frequency)
+			heartbeatManager.RegisterAlert(&hbInstance, hb.Alert)
+			heartbeats = append(heartbeats, hbInstance)
+		} else {
+			log.Println("Error", err)
+		}
+	}
+	return heartbeats
+}
+
 func (mr *MetricRepository) loadInstancesNames() {
-	if data, err := ioutil.ReadFile(mr.getInstancesFilename()); err == nil {
+	if data, err := os.ReadFile(mr.getInstancesFilename()); err == nil {
 		instances := make([]string, 0)
 		json.Unmarshal(data, &instances)
 		for _, instance := range instances {
@@ -86,7 +102,6 @@ func (mr *MetricRepository) AppendMetrics(instanceName string, metricName string
 
 func (mr *MetricRepository) AppendManyMetrics(instanceName string, points map[string]model.MetricPoint) {
 	instance := mr.getInstance(instanceName, true)
-	log.Println("Push metric", instanceName)
 	for metricName, value := range points {
 		instance.Append(metricName, []model.MetricPoint{value})
 	}

@@ -10,40 +10,41 @@ import (
 )
 
 type Heartbeat struct {
-	Name string
+	Name       string
 	formatName string
-	url string
-	frequency time.Duration
+	url        string
+	frequency  time.Duration
+	manager    *Manager
 }
 
-func NewHeartBeat(name, url string, frequency time.Duration)Heartbeat{
+func NewHeartBeat(name, url string, frequency time.Duration) Heartbeat {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	formatName := strings.ToLower(strings.ReplaceAll(name," ","_"))
-	return Heartbeat{Name:name,formatName:formatName,url:url,frequency: frequency}
+	formatName := strings.ToLower(strings.ReplaceAll(name, " ", "_"))
+	return Heartbeat{Name: name, formatName: formatName, url: url, frequency: frequency}
 }
 
-func (hb Heartbeat)Start(appendMethod func(string,[]model.MetricPoint)){
+func (hb Heartbeat) Start(appendMethod func(string, []model.MetricPoint)) {
 	ticker := time.NewTicker(hb.frequency).C
-	go func(){
-		for{
-			<- ticker
-			point := model.MetricPoint{Value:hb.testAsFloat(),Timestamp: time.Now().Unix()}
-			appendMethod(hb.formatName,[]model.MetricPoint{point})
+	go func() {
+		for {
+			t := <-ticker
+			point := model.MetricPoint{Value: hb.testAsFloat(), Timestamp: t.Unix()}
+			appendMethod(hb.formatName, []model.MetricPoint{point})
 		}
 	}()
 }
 
-func (hb Heartbeat)testAsFloat()float32{
-	if hb.test() {
+func (hb Heartbeat) testAsFloat() float32 {
+	if hb.manager.RunHeartbeat(hb) {
 		return 1
 	}
+	log.Println("Hearbeat fail", hb.Name)
 	return 0
 }
 
-func (hb Heartbeat)test()bool{
-	log.Println("Call",hb.url)
-	resp,err := http.Get(hb.url)
-	defer func(){
+func (hb Heartbeat) test() bool {
+	resp, err := http.Get(hb.url)
+	defer func() {
 		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
 		}
