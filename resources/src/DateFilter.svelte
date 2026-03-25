@@ -19,6 +19,6 @@
 </style>
 
 <p class="options">
-    <input type="date" on:change={e=>current_date.set(e.target.value)}/>
+    <input value={new Date().toISOString().substring(0,10)} type="date" on:change={e=>current_date.set(e.target.value)}/>
     <button on:click={()=>refresh_date.update(b=>!b)}>Refresh</button>
 </p>

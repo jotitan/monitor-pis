@@ -13,15 +13,18 @@
 		display:inline-block;
 	}
 	.heartbeat > div.name {
-		width:120px;
+		width:100px;
 	}
 	.name::first-letter {
 		text-transform: capitalize;
+	}
+	.status {
+
 	}
 
 </style>
 
 <div class="heartbeat">
 	<div class="name">{formatName(heartbeat.Name)}</div>
-	<div style="margin-left:10px;">{heartbeat.IsUp?'🟢':'🔴'}</div>
+	<div class="status">{heartbeat.IsUp?'🟢':'🔴'}</div>
 </div>

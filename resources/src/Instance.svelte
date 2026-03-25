@@ -36,6 +36,12 @@
 		cursor:pointer;
         vertical-align: top;
 	}
+
+    .metrics {
+        overflow:auto;
+        scrollbar-width: thin;
+        height:100px;
+    }
 	.title {
 		color: #737373;
 		font-size:22px;
@@ -53,7 +59,9 @@
 
 <div class='instance {isSelected ? "selected":""}' on:click="{update}">
 <div class="title">Instance {instance.name}</div>
+<div class="metrics">
     {#each Object.keys(instance) as id}
         <div class="metric">{showMetric(id,instance[id])}</div>
     {/each}
+</div>
 </div>
