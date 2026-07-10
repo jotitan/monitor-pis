@@ -34,7 +34,7 @@ func newHeader(name string) *headerFileMetrics {
 	return &headerFileMetrics{name: name, headerMetrics: make([]*headerMetric, 0, 20)}
 }
 
-// structure size name(1) |name (49) | nbMetric(1) | 20[size metric name(1)|name(19)|first block (8) | current block (8)]
+// structure size name(1) |name (49) | nbMetric(1) | 20[size metric name(1)|name(29)|first block (8) | current block (8)]
 func (h *headerFileMetrics) fromBytes(data []byte) {
 	sizeName := int(data[0])
 	h.name = string(data[1 : sizeName+1])
@@ -172,6 +172,8 @@ type MetricInstanceRepository struct {
 	locks       lockers
 	metricsName map[string]struct{}
 	fileFlusher FileFlusher
+	// Store the time of the current file open
+	currentDate string
 }
 
 func NewMetricInstanceRepository(folder, instanceName string, nbPointsByBlock, autoFlushLimit int) *MetricInstanceRepository {
@@ -276,17 +278,26 @@ func isCurrentDate(date string) bool {
 	return strings.EqualFold("", date) || strings.EqualFold(date, time.Now().Format("2006-01-02"))
 }
 
-func (r *MetricInstanceRepository) readMetricsFromFile(metricName, date string) []model.MetricPoint {
+func formatDate(date string) time.Time {
 	readDate := time.Now()
 	if !strings.EqualFold("", date) {
 		if d, err := time.Parse("2006-01-02", date); err == nil {
 			readDate = d
 		}
 	}
-	f, _ := os.Open(r.getFilename(readDate))
+	return readDate
+}
+
+func (r *MetricInstanceRepository) readMetricsFromFile(metricName, date string) []model.MetricPoint {
+	readDate := formatDate(date)
+	f, err := os.Open(r.getFilename(readDate))
+	if err != nil {
+		return []model.MetricPoint{}
+	}
 	defer f.Close()
-	if r.head == nil {
+	if r.head == nil || date != r.currentDate {
 		r.head = r.readHeader(f)
+		r.currentDate = date
 	}
 	hm := r.head.getMetric(metricName)
 	if hm == nil {
