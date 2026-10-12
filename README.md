@@ -4,3 +4,4 @@
 [![CI build monitor pis](https://github.com/jotitan/monitor-pis/actions/workflows/main.yml/badge.svg)](https://github.com/jotitan/monitor-pis/actions/workflows/main.yml)
 
 Tools that can monitor raspberry by installing light agent.
+Heartbeat is also configurable for some urls.
